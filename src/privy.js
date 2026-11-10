@@ -15,27 +15,42 @@ class PrivySigner extends Signer {
  async signBytes(bytes){const {signature}=await this.signRawHash({address:this.accountId,chainType:'near',hash:`0x${bytesToHex(bytes)}`});return hexToBytes(signature.replace(/^0x/,''));}
 }
 
-/** Mounts Privy once. `onAccount({accountId, signer, email})` fires after sign-in (and on a restored session);
- *  `onLogout()` after sign-out. Returns {login, logout}. */
-export function startPrivy({appId,onAccount,onLogout}){
+/** Mounts Privy once. Wait for ready before opening its sign-in dialog. */
+export function startPrivy({appId,onAccount,onLoginError,onLogout}){
  const holder=document.createElement('div');holder.id='privy-root';document.body.append(holder);
- const api={login:()=>{},logout:()=>{}};
+ let resolveReady;
+ const api={ready:new Promise(resolve=>{resolveReady=resolve;})};
  function Bridge(){
   const {ready,authenticated,user}=usePrivy();
-  const {login}=useLogin();const {logout}=useLogout();
+  const {login}=useLogin({onError:onLoginError});
+  const {logout}=useLogout();
   const {createWallet}=useCreateWallet();const {signRawHash}=useSignRawHash();
   const creating=useRef(false),reported=useRef('');
-  api.login=login;api.logout=async()=>{await logout();reported.current='';onLogout?.();};
+  function report(current,wallet){
+   if(reported.current===wallet.address)return;
+   reported.current=wallet.address;
+   onAccount({accountId:wallet.address,signer:new PrivySigner(signRawHash,wallet.address),email:current.email?.address||current.google?.email||''});
+  }
+  async function ensureWallet(current){
+   const existing=current.linkedAccounts.find(a=>a.type==='wallet'&&a.chainType==='near');
+   if(existing){report(current,existing);return;}
+   if(creating.current)return;
+   creating.current=true;
+   try{
+    const result=await createWallet({chainType:'near'});
+    report(result.user,result.wallet);
+   }catch(error){
+    console.warn('Privy NEAR wallet',error);
+    onLoginError('wallet_creation_failed');
+   }finally{creating.current=false;}
+  }
+  api.login=()=>authenticated&&user?ensureWallet(user):login();
+  api.logout=async()=>{await logout();reported.current='';onLogout();};
   useEffect(()=>{
-   if(!ready||!authenticated||!user)return;
-   const wallet=user.linkedAccounts.find(a=>a.type==='wallet'&&a.chainType==='near');
-   if(!wallet){
-    if(!creating.current){creating.current=true;createWallet({chainType:'near'}).catch(e=>console.warn('Privy NEAR wallet',e)).finally(()=>{creating.current=false;});}
-    return;
-   }
-   if(reported.current===wallet.address)return;reported.current=wallet.address;
-   onAccount?.({accountId:wallet.address,signer:new PrivySigner(signRawHash,wallet.address),email:user.email?.address||user.google?.email||''});
-  },[ready,authenticated,user,createWallet,signRawHash]);
+   if(!ready)return;
+   resolveReady();
+   if(authenticated&&user)ensureWallet(user);
+  },[ready,authenticated,user]);
   return null;
  }
  createRoot(holder).render(h(PrivyProvider,{appId,config:{

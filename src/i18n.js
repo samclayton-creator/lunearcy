@@ -99,6 +99,16 @@ const PATTERNS=[
 ];
 
 const D={
+'Увійти в долину':'Enter the valley',
+'Увійди в долину':'Enter the valley',
+'Почни одразу як гість або увійди, щоб грати на різних пристроях.':'Start as a guest or sign in to play across devices.',
+'Грати як гість':'Play as guest',
+'Увійти через пошту або Google':'Sign in with email or Google',
+'Продовжити в долину':'Continue to the valley',
+'Готуємо вхід…':'Preparing sign-in…',
+'Вхід зараз недоступний. Спробуй ще раз або продовж як гість.':'Sign-in is unavailable. Try again or play as a guest.',
+'Долина зараз працює локально. Синхронізація недоступна.':'Your valley is running locally. Sync is unavailable.',
+
 "Зараз":"Now",
 "Реєстр поки знає лише Мохолиста, Жарика й Кременя — цей вид додамо в наступному оновленні контракту.":"The registry only knows Mossleaf, Cinder and Flint for now; this species arrives with the next contract update.",
 "Про дракона":"About",

@@ -53,7 +53,7 @@ const sha256=async bytes=>new Uint8Array(await crypto.subtle.digest('SHA-256',by
  *  key under `storageKey`. */
 export function connect({storageKey,identity,onState,onStatus,onError}){
  let near,account,provider,queue=Promise.resolve(),pending=0,closed=false;
- const status=(kind,extra={})=>onStatus?.({kind,pending,accountId:account?.accountId,...extra});
+ const status=(kind,extra={})=>!closed&&onStatus?.({kind,pending,accountId:account?.accountId,...extra});
  async function view(method,args={}){return provider.callFunction({contractId:CONTRACT,method,args});}
  function guestKey(){
   let secret=null;try{secret=localStorage.getItem(storageKey);}catch{}
@@ -82,17 +82,21 @@ export function connect({storageKey,identity,onState,onStatus,onError}){
    const who=identity||guestKey(),id=who.accountId;
    // Sign-in accounts are topped up whenever they run low; guests only on their first visit.
    if(!await exists(id)||identity){try{await fund(who.signer,id);}catch(e){if(!await exists(id))throw e;}for(let i=0;i<20&&!await exists(id);i++)await wait(1000);}
+   if(closed)return;
    account=new near.Account(id,provider,who.signer);
    let v=await view('get_player',{account_id:id});
+   if(closed)return;
    if(!v){status('joining');await account.callFunction({contractId:CONTRACT,methodName:'join',args:{},gas:30_000_000_000_000n});}
    // An RPC node can lag a block behind the one that ran `join`: ask again until the new valley shows up.
-   for(let i=0;i<15&&!await pull(prev);i++)await wait(700);
-   status('synced');
-   return api;
+   for(let i=0;i<15&&!closed;i++){
+    if(await pull(prev)){status('synced');return api;}
+    await wait(700);
+   }
+   if(!closed)throw Error('NEAR player state is unavailable');
   },
   /** Sends one engine action; the chain's answer replaces the local guess. */
   submit(a,prev){
-   const call=toCall(a);if(!call||!account)return;
+   const call=toCall(a);if(closed||!call||!account)return;
    pending++;status('saving');
    queue=queue.then(async()=>{
     try{await account.callFunction({contractId:CONTRACT,methodName:call.method,args:call.args,gas:30_000_000_000_000n});}
@@ -102,7 +106,7 @@ export function connect({storageKey,identity,onState,onStatus,onError}){
    });
    return queue;
   },
-  async refresh(prev){if(!account||pending)return;try{await pull(prev);status('synced');}catch{status('offline');}},
+  async refresh(prev){if(closed||!account||pending)return;try{await pull(prev);status('synced');}catch{status('offline');}},
   close(){closed=true;}
  };
  return api;

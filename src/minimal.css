@@ -233,7 +233,7 @@ dialog label[for="dragon-name"]{display:block;font-size:15px;font-weight:800;col
 /* Dialog and panel focus: kit white ring instead of the lime one, no outline on the dialog box itself. */
 dialog:focus{outline:none}
 .close-panel:focus-visible,dialog .button:focus-visible{outline:2px solid #ffffffcc!important;outline-offset:2px}
-/* Splash (Lunearcy): brand block top-left, one control pill group top-right, two matching pills at the bottom.
+/* Splash (Lunearcy): brand block top-left, one control pill group top-right, one entry button at the bottom.
    Every control uses the language-switch look: dark glass, mint rim, mint fill for the main choice. */
 .main-menu.splash .splash-brand{position:absolute;left:clamp(20px,6vw,90px);top:clamp(24px,8vh,90px);display:flex;flex-direction:column;align-items:flex-start;gap:14px;max-width:min(560px,calc(100vw - 40px))}
 .main-menu.splash .splash-logo{position:static;width:auto;height:auto;display:flex;align-items:center;gap:clamp(10px,1.4vw,18px);margin:0;filter:drop-shadow(0 6px 18px #04141799)}
@@ -244,14 +244,13 @@ dialog:focus{outline:none}
 .main-menu.splash .splash-lang{position:static;height:52px;align-items:center}
 .main-menu.splash .splash-gear{display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;background:#071a1fb3;border:2px solid #8ff0dc55;color:#cfe8df;cursor:pointer}
 .main-menu.splash .splash-gear svg{width:22px;height:22px}
-.main-menu.splash .splash-gear:hover,.main-menu.splash .splash-help:hover,.main-menu.splash .splash-lang button:not(.on):hover{color:#fff;border-color:#8ff0dcaa}
+.main-menu.splash .splash-gear:hover,.main-menu.splash .splash-lang button:not(.on):hover{color:#fff;border-color:#8ff0dcaa}
 .main-menu.splash .splash-cta{flex-direction:row;justify-content:center;gap:12px;bottom:clamp(36px,9vh,90px)}
-.main-menu.splash .splash-play,.main-menu.splash .splash-help{height:56px;min-width:180px;padding:0 28px;border-radius:999px;font:900 18px/1 Nunito,sans-serif;letter-spacing:.2px;cursor:pointer;text-shadow:none}
-.main-menu.splash .splash-play{background:var(--ui-mint,#8ff0dc);color:var(--ui-ink,#0f2b2b);border:2px solid #ffffff99;box-shadow:0 8px 24px #04141799,0 0 26px #8ff0dc55}
-.main-menu.splash .splash-help{background:#071a1fb3;color:#e6f5ef;border:2px solid #8ff0dc55;box-shadow:0 8px 24px #04141766}
-.main-menu.splash .splash-play:focus-visible,.main-menu.splash .splash-help:focus-visible,.main-menu.splash .splash-gear:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.main-menu.splash .splash-play{height:56px;min-width:180px;padding:0 28px;border-radius:999px;font:900 18px/1 Nunito,sans-serif;letter-spacing:.2px;cursor:pointer;text-shadow:none}
+.main-menu.splash .splash-play{animation:none;background:var(--ui-mint,#8ff0dc);color:var(--ui-ink,#0f2b2b);border:2px solid #ffffff99;box-shadow:0 8px 24px #04141799,0 0 26px #8ff0dc55}
+.main-menu.splash .splash-play:focus-visible,.main-menu.splash .splash-gear:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .main-menu.diving .splash-brand,.main-menu.diving .splash-top{opacity:0;transition:opacity .3s}
-@media(max-width:760px){.main-menu.splash .splash-brand{top:84px;left:20px;gap:10px}.main-menu.splash .splash-cta{flex-direction:column;align-items:stretch;left:20px;right:20px}.main-menu.splash .splash-play,.main-menu.splash .splash-help{width:100%}.main-menu.splash .splash-top{right:16px}}
+@media(max-width:760px){.main-menu.splash .splash-brand{top:84px;left:20px;gap:10px}.main-menu.splash .splash-cta{flex-direction:column;align-items:stretch;left:20px;right:20px}.main-menu.splash .splash-play{width:100%}.main-menu.splash .splash-top{right:16px}}
 /* Settings: equal rows with one rhythm, every switch is the same pill as the splash language switch. */
 .settings-list{display:flex;flex-direction:column;gap:10px;margin:18px 0 16px}
 .settings-list .setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px;margin:0;padding:12px 14px 12px 18px;border:0!important;border-radius:16px}
@@ -455,10 +454,5 @@ body.cs-playing .game{visibility:hidden}
 .near-facts{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
 .near-facts>span strong{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 @media(max-width:560px){.near-facts{grid-template-columns:1fr}}
-/* Splash: email / Google sign-in sits under the two main buttons, as a quieter third choice. */
-.main-menu.splash .splash-cta{flex-wrap:wrap}
-.main-menu.splash .splash-signin{flex-basis:100%;min-height:44px;padding:8px 16px;border:0;border-radius:999px;background:none;color:#e6f5ef;font:800 16px/1.2 Nunito,sans-serif;text-decoration:underline;text-underline-offset:4px;text-shadow:0 2px 8px #000c;cursor:pointer}
-.main-menu.splash .splash-signin:hover{color:#fff}
-.main-menu.splash .splash-signin:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .signed-in{display:flex;align-items:center;gap:6px;color:#cfe3d8}.signed-in svg{color:#8ff0dc}
 #privy-root{position:relative;z-index:2000}
