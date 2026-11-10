@@ -1,68 +1,73 @@
 # Lunearcy — Raise dragons. Wake the valley.
 
-An illustrated browser game about a dragon sanctuary, built at NEAR Hackathon (track 09, Games With Real Economies). You hatch and raise dragons, sell what they make to Lucy, the forest spirit who keeps the valley's shop, and wake the valley chapter by chapter.
+**[Play Lunearcy](https://lunearcy.xyz/)** · [NEAR testnet contract](https://testnet.nearblocks.io/address/lunearcy-mw6wrkww.testnet) · [Deployment and transaction receipts](contracts/economy/deployment.testnet.json)
 
-**The economy runs on NEAR testnet.** Every coin, berry, crystal and dragon is an NEP-245 multi token in one contract, and Lucy *is* that contract: her wallet and shelves are shared by every player, so one player's flood of crystals lowers the price for everyone. Players never see a wallet or a gas prompt: the browser creates a player key and a small sponsor service pays the gas. Ukrainian and English UI. An independent hackathon project, not an official NEAR product.
+Lunearcy is an illustrated browser game for NEAR Hackathon’s **Games With Real Economies** track. Hatch dragons, harvest berries and crystals, and sell them to Lucy to fund new eggs, expeditions, and the restoration of the valley.
 
-## Run
+**Every player trades with the same Lucy.** Her wallet and inventory are balances held by the NEAR contract. A sale pays out coins from her wallet and adds goods to her shelf. More stock reduces the price she offers the next player. Spending coins in the valley puts them back into her wallet.
 
-Node 24+. `npm install`, then `npm run dev` → http://127.0.0.1:5180/.
+## Try the game
 
-The game talks to the deployed testnet contract out of the box. To get gas sponsored locally, run the sponsor next to it (`node tools/near/relayer-local.mjs`, which reads its disposable testnet key from the git-ignored `.local/sponsor-testnet.json`; create one with `node tools/near/create-sponsor.mjs`). Without a sponsor, or with `?offline`, the same game runs locally in the browser.
+1. Select **Enter the valley → Play as guest**. No external wallet or gas prompt is needed.
+2. Follow the tutorial to clear the fog, hatch your first egg, and feed the dragon. Collect its first harvest, then sell the berries to Lucy.
+3. Open **Market** to see the stock and the price breakdown. Use the **NEAR** button in the game to see whether the valley is synced, inspect Lucy’s balances, or open the contract in the explorer.
 
-Deploy: Netlify builds the site from `netlify.toml` and serves the sponsor at `/api/fund`; set `SPONSOR_ACCOUNT_ID` and `SPONSOR_PRIVATE_KEY` in the site's environment variables.
+The game offers optional email or Google sign-in through Privy. Guest saves are tied to a browser key. **Saved on NEAR** indicates a synced testnet session. If the sponsor or network is unavailable, the game can run locally and the local save does not affect the shared market. [Play offline](https://lunearcy.xyz/?offline&session=offline-demo) to try the local mode separately.
 
-- `npm test`: 25 tests for the economy, Lucy's market, the week simulation, the English translation and contract parity.
-- Contract tests: `cargo test --manifest-path contracts/economy/Cargo.toml` (19 tests, including parity with the browser rules).
-- `npm run build`: the static production game in `dist/`.
-- `?session=your-test-name`: a separate browser save for QA; without it the game uses the default save.
-- `?cutscene`: replays the first-eclipse cutscene right after "Play", for reviewing it.
+## The economy is the gameplay
 
-## How it plays
+| What you do | What changes |
+| --- | --- |
+| Raise and upgrade dragons | Their nests produce berries or crystals. Berries also feed dragons and supply expeditions. |
+| Sell to Lucy | You earn coins. Her stock grows and her coin balance falls. Later sales can pay less as her shelves fill. |
+| Buy eggs and restore the valley | Coins return to Lucy’s wallet. New dragon species, nests, and regions open as you progress. |
+| Time a sale around the eclipse | Daylight and eclipse alternate on the contract’s clock every two minutes. Lucy’s eclipse multiplier for crystals is 1.25× before integer rounding, and some dragons produce more under the red sky. |
+| Send dragons on expeditions | They spend berries and stop producing at home until they return with coins and crystals. |
 
-Three resources, one loop: dragons make **berries** (food) or **crystals** (goods) → Lucy buys them for **coins** → coins hatch new dragons, raise levels and open new lands.
+Neighbour demand is modeled by contract rules. At 20-second intervals it can drain stock and replenish Lucy’s wallet. Elapsed intervals settle when the contract processes an applicable game action. The **A week of the market in a minute** view replays a local market simulation with those pricing rules.
 
-1. **Hatch and raise.** An egg hatches after 8 seconds. Feed the baby three times, 2 berries each; the starting berries are exactly enough for the first dragon. A free forest clearing gives 3 berries every 20 seconds, so food never runs out. An egg can be hurried for 5 coins.
-2. **Collect.** Adults fill their nest every cycle; a nest holds five harvests. While the player is away, the nest keeps filling past that at half speed, for up to 45 minutes.
-3. **Sell to Lucy.** She pays from her own wallet (150 coins to start), and every coin the player spends in the valley goes back into it. The fuller her shelf, the less she pays, never below a floor price. Neighbours buy from her shelf every 20 seconds (three berries or one crystal at a time), so prices recover and her wallet refills. If her wallet is empty, the shop is closed until someone spends coins. The "?" next to a price shows the whole calculation.
-4. **Day and eclipse** alternate every 2 minutes. In the eclipse the neighbours panic about the NEAR chart and hoard crystals: Lucy pays 25% more for them. Some dragons also work harder in the eclipse (see the table), so the choice is to sell now or to hold crystals for the red sky.
-5. **Expeditions.** Send up to three adults for 30 seconds. Each dragon eats 3 berries on the road; the team brings 6 coins per dragon level and 2 crystals per dragon, and this is the main source of new coins from outside the valley (goal rewards add a few). Dragons on a trip do not work at home.
-6. **Levels.** Each level adds +50% output, up to level 5. Costs grow: 20, 34, 58 and 98 coins, plus 5 berries per current level.
-7. **Chapters.** Chapter 1: raise three different species, then restore the Heart of the Valley for 60 coins and 20 crystals (opens the fourth nest and Mistling, the mist dragon). Chapter 2: open the Moon Quarry (80 coins, 20 crystals; two nests and Crystalwing, the crystal dragon), then the Ancient Ruins (120 coins, 40 crystals; two more nests, eight in all). After that the valley levels up without end: each level costs 1.4× more and adds +10% to everything.
-8. **Goals** give one-off rewards, from hatching two dragons to "Legend of the valley": raise a dragon to level 5, a legend worth recording in the NEAR registry.
+## What runs on NEAR
 
-| Dragon | Makes | Egg | Trait |
-|---|---|---|---|
-| Mossleaf (Мохолист) | 3 berries / 12 s | 30 | Sun lover: +20% by day |
-| Cinder (Жарик) | 2 crystals / 15 s | 45 | Eclipse fire: +50% in the eclipse |
-| Flint (Кремінь) | 4 crystals / 25 s | 70 | Treasure hunter: on a trip 1.5× coins and 2× crystals |
-| Mistling (Туманник) | 6 berries / 18 s | 90, after the Heart | Night gatherer: +50% in the eclipse |
-| Crystalwing (Кришталик) | 7 crystals / 24 s | 120, after the Quarry | Tireless: its nest holds 10 harvests |
+- [Economy contract](contracts/economy/src/lib.rs) handles the player state, harvests, sales, upgrades, land, and expeditions. The [contract rules](contracts/economy/src/rules.rs) are mirrored by the [browser engine](src/engine.js) and [pricing rules](src/market-rules.js). The browser shows an immediate result, then reconciles with the contract.
+- [NEP-245 implementation](contracts/economy/src/mt.rs) tracks coins, berries, crystals, and individual dragon tokens in one contract. The contract account holds Lucy’s balances. Dragons carry game state, and the generic token transfer methods apply to goods and coins.
+- [Browser connection](src/chain.js) submits game actions using the guest’s browser key or a [Privy embedded NEAR wallet](src/privy.js). The [sponsor](server/sponsor-core.mjs) checks proof of key ownership before topping up an eligible account with testnet NEAR.
+- [Deployment record](contracts/economy/deployment.testnet.json) links to live testnet receipts for contract initialization, joining, and foraging. The separate [dragon registry prototype](contracts/market/README.md) has its own receipts and is outside the current shared economy.
 
-The first three eggs must be three different species. A seven-step tutorial with Lucy teaches the loop; a goal card then always points to the next useful step. **A week of the market in a minute** replays seven days of a simulated village trading with Lucy, through the same rules file as the game (`src/market-rules.js`), including the eclipse.
+Read Lucy’s live market and her three token balances without a wallet. Run this after `npm ci` from the repository root.
 
-Pan by dragging; mouse wheel or pinch to zoom; keyboard arrows, +/− and Home. The map adapts to phones. Settings: sound, reduced motion, language, tutorial replay and a confirmed reset. Progress is saved in this browser only.
+```bash
+node --input-type=module <<'JS'
+import {JsonRpcProvider} from 'near-api-js';
 
-## On NEAR
+const contractId = 'lunearcy-mw6wrkww.testnet';
+const rpc = new JsonRpcProvider({url: 'https://test.rpc.fastnear.com'});
+const market = await rpc.callFunction({contractId, method: 'get_market', args: {}});
+const balances = await rpc.callFunction({
+  contractId,
+  method: 'mt_batch_balance_of',
+  args: {account_id: contractId, token_ids: ['coins', 'berries', 'crystals']}
+});
+console.log({market, balances});
+JS
+```
 
-- **Contract** `contracts/economy` (Rust, near-sdk 5.7), deployed at [`lunearcy-mw6wrkww.testnet`](https://testnet.nearblocks.io/address/lunearcy-mw6wrkww.testnet) ([deployment record](contracts/economy/deployment.testnet.json)).
-- **NEP-245 multi token:** `coins`, `berries`, `crystals` and `dragon:<id>` (supply of one) in one contract, with `mt_balance_of`, `mt_batch_balance_of`, `mt_supply`, `mt_token`, `mt_transfer`, `mt_batch_transfer`, `mt_transfer_call` and standard `mt_mint` / `mt_burn` / `mt_transfer` events. Goods and coins move freely between players; dragons carry game state and move only through the game.
-- **Lucy, an NPC with a wallet:** her wallet is the contract's own `coins` balance and her shelves are its `berries` / `crystals` balances. She pays from that wallet, her price falls with every unit on her shelf, neighbours buy from her every 20 seconds, and when she is broke her shop is closed for everyone until someone spends coins in the valley. The eclipse is one shared clock: crystals pay 25% more while the sky is red.
-- **The whole economy is on chain:** eggs, feeding, levels, harvests (computed from block time, so a browser cannot mint goods), trips, lands, goals. The browser runs the same rules to answer instantly, sends each action as a transaction and then adopts the contract's state. `contracts/economy/src/rules.rs` mirrors `src/market-rules.js` and `src/engine.js` in exact integer arithmetic; `tools/parity-vectors.mjs` and `contracts/economy/tests/parity.rs` prove they agree.
-- **No wallet, no gas prompt:** a guest's browser keeps a player key (an implicit testnet account); a signed-in player (email or Google via Privy) gets an embedded NEAR wallet that signs silently. The gas sponsor (`server/sponsor-core.mjs`, served as the Netlify function `netlify/functions/sponsor.mjs` on the game's own domain; `server/relayer.mjs` + `render.yaml` run the same code as a standalone server) tops the account up with test NEAR after the browser proves it holds the key, with per-IP, per-account and daily limits.
+The tokens are game items on NEAR testnet. The hosted sponsor is served at [`/api/health`](https://lunearcy.xyz/api/health) and `/api/fund` on the game domain.
 
-This is testnet: tokens have no money value and nothing here is a financial product. The earlier dragon registry (`contracts/market`, a custom ownership/trade demo) is kept for reference.
+## Run and test locally
 
-## Verification
+Use Node 24 or newer. Use a current Rust and Cargo toolchain to run the contract tests.
 
-- 25 game tests, including parity vectors for the contract: production and caps, away-time filling, species traits, the eclipse price, expedition costs and rewards, level costs, save migration and damaged-save recovery, Lucy's wallet and shelf, the week simulation, and a scripted player who finishes chapter 1 in about 3½ simulated minutes and chapter 2 in about 10½ (a simulation, not a human completion-time claim).
-- Contract: 17 Rust unit tests and 4 bridge tests; real testnet register → list → buy → withdraw receipts ([details](contracts/market/README.md)).
-- Accessibility pass (WCAG 2.1 AA targets): text contrast, 44 px touch targets, keyboard focus that survives re-renders, focus-trapped dialogs and cutscene, screen-reader names and live regions.
+```bash
+npm ci
+npm test
+cargo test --locked --manifest-path contracts/economy/Cargo.toml
+npm run build
+```
 
-## Art
+Run `npm run dev`, then open [http://127.0.0.1:5180/?offline](http://127.0.0.1:5180/?offline) for a local game without credentials. For local testnet play, create the git-ignored `.local` directory before running `node tools/near/create-sponsor.mjs`. Fund the resulting testnet sponsor, then run `node tools/near/relayer-local.mjs` alongside Vite. Netlify deployments use the settings in [`netlify.toml`](netlify.toml) and require `SPONSOR_ACCOUNT_ID` and `SPONSOR_PRIVATE_KEY` in the Functions environment.
 
-Art made for this project (illustrated and AI-generated layers); no code or assets from other games are shipped. The Nunito font is bundled with its OFL license. Notes on earlier art directions: [docs/ART.md](docs/ART.md) (partly historical).
+- [Game tests](tests) cover the gameplay loop, pricing, market simulation, and browser/contract parity. The [Rust parity tests](contracts/economy/tests/parity.rs) use the same rule vectors.
+- `?session=your-test-name` gives a guest a separate browser save and key. `?cutscene` replays the first eclipse after entering the valley.
+- `npm run build` writes the static game to `dist/`. `python3 tools/package-release.py` packages an existing build for static hosting.
 
-## Portable build
-
-`python3 tools/package-release.py` packages an existing `dist` build into a zip in `releases/`, excluding local, server and private files, with a SHA-256 checksum in its manifest. Serve the extracted files from a web root; the optional local testnet bridge is not part of this static archive.
+The game supports English and Ukrainian, mouse or touch map controls, keyboard navigation, and reduced motion. The art uses illustrated and AI-generated layers made for the project. See [art notes](docs/ART.md) and the [project license](LICENSE).
